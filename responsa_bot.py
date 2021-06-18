@@ -100,6 +100,7 @@ def copy_document(driver, document_number):
     driver.switch_to.default_content()
     WebDriverWait(driver, timeout=20).until(lambda d: d.find_element_by_id("titles"))
     switch_to(driver, "titles")
+    print("25%")
     for i in range(0, 3):
         for x in range(2, document_number + 10):
             try:
@@ -108,26 +109,32 @@ def copy_document(driver, document_number):
             except exceptions.NoSuchElementException:
                 pass
         time.sleep(1)
+    print("50%")
     try:
         WebDriverWait(driver, timeout=20).until(lambda d: d.find_element_by_id("docFrame"))
         switch_to(driver, "docFrame")
         WebDriverWait(driver, timeout=20).until(lambda d: d.find_element_by_id("docBody"))
     except exceptions.TimeoutException:
         return None
-    header = driver.find_element_by_id("header")
+    print("60%")
+    # header = driver.find_element_by_id("header")
     body_el = driver.find_element_by_class_name("docBody")
     body = body_el.get_attribute("innerHTML")
     soup = BeautifulSoup(body, "html.parser")
     body = soup.find_all("span")
     body_arr = list()
     body_text = ""
+    print("75%")
     for item in body:
         if item.text != "":
             body_arr.append(item.text)
+    print("85%")
     for x in body_arr:
         body_text += x + " "
+    print("90%")
     for x in body_arr:
         body_text = body_text.replace(x+" "+x+" "+x+" ", "\n"+x+" ")
+    print("100%")
     return body_text
 
 
