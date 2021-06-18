@@ -24,7 +24,6 @@ def ensure_dir(file_path):
     directory = os.path.dirname(file_path.replace("\"", "'").replace(":", "-") + "/")
     if not os.path.exists(directory):
         os.makedirs(directory)
-    print(directory)
     return directory
 
 
@@ -179,28 +178,6 @@ def expand_browse_menu(driver):
                 print("Number of buttons clicked: " + str(num_clicked))
 
 
-# clicks on a few plus buttons to partly expand menu
-# useful for testing purposes
-def expand_menu_test(driver):
-    for x in range(0, 2):
-        clicked = list()
-        num_clicked = 0
-        sidebar_titles = driver.find_elements_by_class_name("bulletPlus")
-        print("Number of buttons left: " + str(len(sidebar_titles)))
-        for title in sidebar_titles:
-            try:
-                title.click()
-            except (exceptions.ElementNotInteractableException, exceptions.ElementClickInterceptedException,
-                    exceptions.ElementNotVisibleException, exceptions.WebDriverException):
-                pass
-            clicked.append(title)
-            num_clicked += 1
-            if num_clicked % 100 == 0:
-                print("Number of buttons clicked: " + str(num_clicked))
-            if num_clicked >= 100:
-                return
-
-
 # returns expected PATH (not including repo_dir) of selenium WebElement
 # make sure to pass an object with unique ID (in this case an <li>)
 def get_expected_path(driver, element):
@@ -279,6 +256,7 @@ def make_repo(driver, repo_dir, overwrite=False):
             if li not in clicked:
                 try:
                     _type = li.get_attribute("type")
+                    name = li.get_attribute("name").replace('"', "'").replace("/", ";").replace(":", "-")
                 except exceptions.WebDriverException:
                     _type = None
                 if _type == "collection":
@@ -296,8 +274,8 @@ def make_repo(driver, repo_dir, overwrite=False):
                         continue
                 elif _type == "unit" or _type == "leaf":
                     extension = get_expected_path(driver, li)
-                    path = repo_dir + extension + li.get_attribute("name").replace('"', "'").replace("/", ";").replace(":", "-") + ".txt"
-                    print(path)
+                    path = repo_dir + extension
+                    # print(path)
                     try:
                         span = li.find_element_by_class_name("title")
                         span.click()
@@ -308,11 +286,10 @@ def make_repo(driver, repo_dir, overwrite=False):
                     document_text = copy_document(driver, document_number)
                     document_number += 1
                     path = ensure_dir(path)
-                    try:
-                        with open(path + "/" + li.get_attribute("name").replace("/", ";") + ".txt", "wb") as f:
-                            f.write(document_text.encode())
-                    except exceptions.WebDriverException:
-                        pass
+                    filename = path + "/" + name + ".txt"
+                    print(filename)
+                    with open(filename, "wb") as f:
+                        f.write(document_text.encode())
                     close_open_tabs(driver)
                     driver.switch_to.default_content()
                     switch_to(driver, "sidebar")
