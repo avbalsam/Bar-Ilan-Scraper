@@ -76,23 +76,18 @@ def copy_document(driver, document_number):
     driver.switch_to.default_content()
     WebDriverWait(driver, timeout=20).until(lambda d: d.find_element_by_id("titles"))
     switch_to(driver, "titles")
-    print("25%")
-    for i in range(0, 3):
-        for x in range(document_number + 2, document_number + 5):
-            try:
-                switch_to(driver, "iFrame" + str(x))
-                break
-            except exceptions.NoSuchElementException:
-                pass
-        time.sleep(1)
-    print("50%")
     try:
+        print("25%")
+        WebDriverWait(driver, timeout=20).until(lambda d: d.find_element_by_id("iFrame" + str(document_number + 3)))
+        switch_to(driver, "iFrame" + str(document_number + 3))
         WebDriverWait(driver, timeout=20).until(lambda d: d.find_element_by_id("docFrame"))
         switch_to(driver, "docFrame")
+        print("50%")
         WebDriverWait(driver, timeout=20).until(lambda d: d.find_element_by_id("docBody"))
     except exceptions.TimeoutException:
         return None
     print("60%")
+    time.sleep(1)
     # header = driver.find_element_by_id("header")
     body_el = driver.find_element_by_class_name("docBody")
     body = body_el.get_attribute("innerHTML")
@@ -122,7 +117,7 @@ def make_repo(driver, repo_dir, overwrite=False):
     clicked = list()
     while True:
         count = 0
-        elements = driver.find_elements_by_tag_name("li").reverse()
+        elements = driver.find_elements_by_tag_name("li")
         if len(elements) == 0:
             break
         for li in elements:
@@ -156,7 +151,12 @@ def make_repo(driver, repo_dir, overwrite=False):
                         count += 1
                     except exceptions.WebDriverException:
                         continue
-                    document_text = copy_document(driver, document_number)
+                    errs = 0
+                    while document_text is None:
+                        errs += 1
+                        if errs == 10:
+                            return -1
+                        document_text = copy_document(driver, document_number)
                     document_number += 1
                     path = ensure_dir(path)
                     filename = path + "/" + name + ".txt"
