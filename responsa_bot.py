@@ -19,7 +19,7 @@ def remove_last(arr, el):
     return arr
 
 
-#creates needed directories for given file and fixes any problems with filename
+# creates needed directories for given file and fixes any problems with filename
 def ensure_dir(file_path):
     directory = os.path.dirname(file_path.replace("\"", "'").replace(":", "-") + "/")
     if not os.path.exists(directory):
@@ -42,30 +42,6 @@ def switch_to(driver, frame_id):
         driver.switch_to.frame(iframe)
     except exceptions.NoSuchFrameException:
         pass
-
-
-# clicks on all + buttons to fully expand the browse menu
-# used for adding files to tree
-# TODO Expand every li with type "collection"
-def expand_browse_menu(driver):
-    clicked = list()
-    num_clicked = 0
-    count = 0
-    while True:
-        sidebar_titles = driver.find_elements_by_css_selector("li[type=collection]")
-        print("Number of buttons left: " + str(len(sidebar_titles)))
-        if len(sidebar_titles) == 0 or count == 50:
-            break
-        for title in sidebar_titles:
-            try:
-                title.click()
-            except (exceptions.ElementNotInteractableException, exceptions.ElementClickInterceptedException,
-                    exceptions.ElementNotVisibleException, exceptions.WebDriverException):
-                break
-            clicked.append(title)
-            num_clicked += 1
-            if num_clicked % 100 == 0:
-                print("Number of buttons clicked: " + str(num_clicked))
 
 
 # returns expected PATH (not including repo_dir) of selenium WebElement
@@ -102,7 +78,7 @@ def copy_document(driver, document_number):
     switch_to(driver, "titles")
     print("25%")
     for i in range(0, 3):
-        for x in range(2, document_number + 10):
+        for x in range(document_number + 2, document_number + 5):
             try:
                 switch_to(driver, "iFrame" + str(x))
                 break
@@ -146,7 +122,7 @@ def make_repo(driver, repo_dir, overwrite=False):
     clicked = list()
     while True:
         count = 0
-        elements = driver.find_elements_by_tag_name("li")
+        elements = driver.find_elements_by_tag_name("li").reverse()
         if len(elements) == 0:
             break
         for li in elements:
