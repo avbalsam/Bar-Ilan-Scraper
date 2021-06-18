@@ -35,92 +35,6 @@ def close_open_tabs(driver):
     print("closed tabs")
 
 
-# Non-recursive method to create full file tree
-def make_dirs(driver, location):
-    html = driver.execute_script("return document.documentElement.outerHTML;")
-    soup = BeautifulSoup(html, "html.parser")
-    for a in soup.find_all("li", level="1"):
-        levels = [a["name"], "", "", "", "", "", "", "", "", ""]
-        for b in a.findChildren("li", level="2"):
-            levels[1] = b["name"]
-            extension = str()
-            for level in levels:
-                extension += level.replace("/", ";")
-                extension += "/"
-            ensure_dir(location + extension)
-            for c in b.findChildren("li", level="3"):
-                levels[2] = c["name"]
-                extension = str()
-                for level in levels:
-                    extension += level.replace("/", ";")
-                    extension += "/"
-                ensure_dir(location + extension)
-                for d in c.findChildren("li", level="4"):
-                    levels[3] = d["name"]
-                    extension = str()
-                    for level in levels:
-                        extension += level.replace("/", ";")
-                        extension += "/"
-                    ensure_dir(location + extension)
-                    for e in d.findChildren("li", level="5"):
-                        levels[4] = e["name"]
-                        extension = str()
-                        for level in levels:
-                            extension += level.replace("/", ";")
-                            extension += "/"
-                        ensure_dir(location + extension)
-                        for f in e.findChildren("li", level="6"):
-                            levels[5] = f["name"]
-                            extension = str()
-                            for level in levels:
-                                extension += level.replace("/", ";")
-                                extension += "/"
-                            ensure_dir(location + extension)
-                            for g in f.findChildren("li", level="7"):
-                                levels[6] = g["name"]
-                                extension = str()
-                                for level in levels:
-                                    extension += level.replace("/", ";")
-                                    extension += "/"
-                                ensure_dir(location + extension)
-                            levels[6] = ""
-                        levels[5] = ""
-                    levels[4] = ""
-                levels[3] = ""
-            levels[2] = ""
-        levels[1] = ""
-
-
-# part of make_dirs_rec()
-# TODO make recursive directory tree maker work
-def parse_tree(location, element, levels):
-    children = element.findChildren("li")
-    if len(element.findChildren("li")) == 0:
-        return
-    levels.append("/")
-    for child in children:
-        name = child["name"]
-        name = name.replace('"', "'")
-        levels.append(name)
-        extension = str()
-        for level in levels:
-            extension += level.replace("/", ";")
-        ensure_dir(location + extension)
-        parse_tree(location, child, levels)
-        levels = remove_last(levels, name)
-
-
-# Adds all visible directories to file tree
-# TODO make this method work
-def make_dirs_rec(driver, location):
-    html = driver.execute_script("return document.documentElement.outerHTML;")
-    soup = BeautifulSoup(html, "html.parser")
-    top_level = soup.find_all("li", type="collection", level="1")
-    for item in top_level:
-        levels = [item["name"]]
-        parse_tree(location, item, levels)
-
-
 # switches to specified frame object
 def switch_to(driver, frame_id):
     iframe = driver.find_element_by_id(frame_id)
@@ -128,30 +42,6 @@ def switch_to(driver, frame_id):
         driver.switch_to.frame(iframe)
     except exceptions.NoSuchFrameException:
         pass
-
-
-# clicks on all + buttons to fully expand the search menu
-# used for creating directory tree
-def expand_search_menu(driver):
-    clicked = list()
-    num_clicked = 0
-    count = 0
-    while True:
-        sidebar_titles = driver.find_elements_by_class_name("bulletPlus")
-        print("Number of buttons left: " + str(len(sidebar_titles)))
-        if len(sidebar_titles) == 0 or count == 50:
-            break
-        for title in sidebar_titles:
-            try:
-                title.click()
-            except (exceptions.ElementNotInteractableException, exceptions.ElementClickInterceptedException,
-                    exceptions.ElementNotVisibleException, exceptions.WebDriverException):
-                break
-            clicked.append(title)
-            num_clicked += 1
-            # print(title)
-            if num_clicked % 100 == 0:
-                print("Number of buttons clicked: " + str(num_clicked))
 
 
 # clicks on all + buttons to fully expand the browse menu
