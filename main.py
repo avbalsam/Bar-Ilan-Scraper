@@ -3,7 +3,7 @@ from selenium import webdriver
 import responsa_bot
 
 driver = webdriver.Chrome()
-repo_dir = "/Users/Avi/Desktop/Bar_Ilan_0/"
+repo_dir = "/Users/Avi/Desktop/Bar_Ilan_1/"
 
 # Navigate to url
 driver.get("http://www.responsa.co.il")

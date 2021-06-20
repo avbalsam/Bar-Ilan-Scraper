@@ -54,7 +54,6 @@ def get_expected_path(driver, element):
     soup_element = soup.find("li", id=element_id)
     path_arr = []
     for parent in soup_element.parents:
-        name = None
         try:
             name = parent["name"]
             path_arr.append(name).replace("/", ";")
@@ -74,20 +73,20 @@ def get_expected_path(driver, element):
 def copy_document(driver, document_number):
     print("Copying document number: " + str(document_number))
     driver.switch_to.default_content()
-    WebDriverWait(driver, timeout=20).until(lambda d: d.find_element_by_id("titles"))
+    WebDriverWait(driver, timeout=10).until(lambda d: d.find_element_by_id("titles"))
     switch_to(driver, "titles")
     try:
         print("25%")
-        WebDriverWait(driver, timeout=20).until(lambda d: d.find_element_by_id("iFrame" + str(document_number + 3)))
+        WebDriverWait(driver, timeout=10).until(lambda d: d.find_element_by_id("iFrame" + str(document_number + 3)))
         switch_to(driver, "iFrame" + str(document_number + 3))
-        WebDriverWait(driver, timeout=20).until(lambda d: d.find_element_by_id("docFrame"))
+        WebDriverWait(driver, timeout=10).until(lambda d: d.find_element_by_id("docFrame"))
         switch_to(driver, "docFrame")
         print("50%")
-        WebDriverWait(driver, timeout=20).until(lambda d: d.find_element_by_id("docBody"))
+        WebDriverWait(driver, timeout=10).until(lambda d: d.find_element_by_id("docBody"))
     except exceptions.TimeoutException:
         return None
     print("60%")
-    time.sleep(1)
+    time.sleep(.2)
     # header = driver.find_element_by_id("header")
     body_el = driver.find_element_by_class_name("docBody")
     body = body_el.get_attribute("innerHTML")
@@ -104,7 +103,7 @@ def copy_document(driver, document_number):
         body_text += x + " "
     print("90%")
     for x in body_arr:
-        body_text = body_text.replace(x+" "+x+" "+x+" ", "\n"+x+" ")
+        body_text = body_text.replace(x+" "+x+" "+x+" ", x+" ")
     print("100%")
     return body_text
 
@@ -127,6 +126,8 @@ def make_repo(driver, repo_dir, overwrite=False):
                     name = li.get_attribute("name").replace('"', "'").replace("/", ";").replace(":", "-")
                 except exceptions.WebDriverException:
                     _type = None
+
+                # if the item is a directory, click on it
                 if _type == "collection":
                     try:
                         span = li.find_element_by_class_name("title")
@@ -140,6 +141,7 @@ def make_repo(driver, repo_dir, overwrite=False):
                         break
                     except (exceptions.WebDriverException, exceptions.NoSuchElementException):
                         continue
+                # if the item is a file, click on it and copy it to repository
                 elif _type == "unit" or _type == "leaf":
                     extension = get_expected_path(driver, li)
                     path = repo_dir + extension
@@ -152,20 +154,34 @@ def make_repo(driver, repo_dir, overwrite=False):
                     except exceptions.WebDriverException:
                         continue
                     errs = 0
+                    document_text = None
+                    copy = True
+
+                    # logs in if login button exists
+                    login_buttons = driver.find_elements_by_class_name("btnMid")
+                    if "Login" in [x.text for x in login_buttons]:
+                        login(driver)
+
+                    # tries a maximum of ten times to copy document, otherwise changes copy flag
                     while document_text is None:
                         errs += 1
                         if errs == 10:
-                            return -1
+                            print("Document number " + str(document_number) + " was not copied")
+                            copy = False
+                            break
                         document_text = copy_document(driver, document_number)
                     document_number += 1
-                    path = ensure_dir(path)
-                    filename = path + "/" + name + ".txt"
-                    print(filename)
-                    with open(filename, "wb") as f:
-                        f.write(document_text.encode())
-                    close_open_tabs(driver)
-                    driver.switch_to.default_content()
-                    switch_to(driver, "sidebar")
+
+                    # if copy flag has not been changed, writes document_text to correct file
+                    if copy:
+                        path = ensure_dir(path)
+                        filename = path + "/" + name + ".txt"
+                        print(filename)
+                        with open(filename, "wb") as f:
+                            f.write(document_text.encode())
+                        close_open_tabs(driver)
+                        driver.switch_to.default_content()
+                        switch_to(driver, "sidebar")
 
 
 # logs into yeshivat har etzion account on responsa.co.il
