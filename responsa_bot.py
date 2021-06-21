@@ -165,30 +165,32 @@ def make_repo(driver, repo_dir, overwrite=False):
                     # tries a maximum of ten times to copy document, otherwise changes copy flag
                     while document_text is None:
                         errs += 1
-                        if errs == 10:
-                            print("Document number " + str(document_number) + " was not copied")
-                            copy = False
-                            break
+                        if errs == 3:
+                            get_into_account(driver, document_number)
                         document_text = copy_document(driver, document_number)
                     document_number += 1
 
                     # if copy flag has not been changed, writes document_text to correct file
-                    if copy:
-                        path = ensure_dir(path)
-                        filename = path + "/" + name + ".txt"
-                        print(filename)
-                        with open(filename, "wb") as f:
-                            f.write(document_text.encode())
-                        close_open_tabs(driver)
-                        driver.switch_to.default_content()
-                        switch_to(driver, "sidebar")
+                    if not copy:
+                        continue
+                    path = ensure_dir(path)
+                    filename = path + "/" + name + ".txt"
+                    print(filename)
+                    with open(filename, "wb") as f:
+                        f.write(document_text.encode())
+                    close_open_tabs(driver)
+                    driver.switch_to.default_content()
+                    switch_to(driver, "sidebar")
 
 
 # logs into yeshivat har etzion account on responsa.co.il
-def login(driver):
+def login(driver, document_number):
     driver.switch_to.default_content()
     switch_to(driver, "titles")
-    switch_to(driver, "iFrame2")
+    try:
+        switch_to(driver, "iFrame" + str(document_number + 3))
+    except (exceptions.NoSuchElementException, exceptions.NoSuchFrameException):
+        return -1
     username_input = driver.find_element_by_id("login")
     username_input.send_keys("haryeshiva")
     password_input = driver.find_element_by_id("password")
@@ -199,9 +201,10 @@ def login(driver):
 
 # method to be used if 10 people are using account
 # logs in repeatedly until accepted
-def get_into_account(driver):
+def get_into_account(driver, document_number):
     while True:
-        login(driver)
+        if login(driver, document_number) == -1:
+            return -1
         try:
             WebDriverWait(driver, 3).until(EC.alert_is_present(),
                                             'Timed out waiting for PA creation ' +
