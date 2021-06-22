@@ -133,7 +133,7 @@ def make_repo(driver, repo_dir, overwrite=False):
                         span = li.find_element_by_class_name("title")
                         span.click()
                         clicked.append(li)
-                        time.sleep(1)
+                        time.sleep(.2)
                         count += 1
                         close_open_tabs(driver)
                         driver.switch_to.default_content()

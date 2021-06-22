@@ -4,6 +4,8 @@ import responsa_bot
 
 driver = webdriver.Chrome()
 repo_dir = "/Users/Avi/Desktop/Bar_Ilan_2/"
+# list of ids of already indexed top level items
+indexed = ["1945398"]
 
 # Navigate to url
 driver.get("http://www.responsa.co.il")
